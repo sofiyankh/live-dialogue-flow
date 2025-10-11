@@ -67,6 +67,32 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
           <Button type="submit" className="w-full gradient-primary text-primary-foreground">
             Sign In
           </Button>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setEmail('demo@livechat.com');
+              setPassword('demo123');
+              setTimeout(() => {
+                const event = new Event('submit', { bubbles: true, cancelable: true });
+                document.querySelector('form')?.dispatchEvent(event);
+              }, 100);
+            }}
+          >
+            Try Demo Account
+          </Button>
+
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
             <button
