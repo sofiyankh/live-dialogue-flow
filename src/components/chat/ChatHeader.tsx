@@ -1,10 +1,26 @@
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, Phone, Video } from 'lucide-react';
+import { UserProfileDialog } from './UserProfileDialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeSelector, ChatTheme } from './ThemeSelector';
+import { CallInterface } from '../calling/CallInterface';
 
 export const ChatHeader = () => {
+  const [showProfile, setShowProfile] = useState(false);
+  const [activeCall, setActiveCall] = useState<'voice' | 'video' | null>(null);
+
+  const handleThemeChange = (theme: ChatTheme) => {
+    // Apply theme to chat
+    document.documentElement.style.setProperty('--chat-sent', theme.sentBg);
+    document.documentElement.style.setProperty('--chat-sent-foreground', theme.sentText);
+    document.documentElement.style.setProperty('--chat-received', theme.receivedBg);
+    document.documentElement.style.setProperty('--chat-received-foreground', theme.receivedText);
+    document.documentElement.style.setProperty('--gradient-chat', theme.gradient);
+  };
   const { conversations, selectedConversationId } = useSelector((state: RootState) => state.conversations);
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id);
 
@@ -35,33 +51,73 @@ export const ChatHeader = () => {
   };
 
   return (
-    <div className="border-b p-4 bg-card">
-      <div className="max-w-4xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={displayPic} />
-            <AvatarFallback className="gradient-primary text-primary-foreground">
-              {displayName[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-semibold">{displayName}</p>
-            <p className="text-xs text-muted-foreground">{getStatusText()}</p>
+    <>
+      {activeCall && (
+        <CallInterface
+          type={activeCall}
+          recipientName={displayName}
+          recipientImage={displayPic}
+          onEndCall={() => setActiveCall(null)}
+        />
+      )}
+
+      <div className="border-b p-4 bg-card">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-smooth"
+            onClick={() => setShowProfile(true)}
+          >
+            <div className="relative">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={displayPic} />
+                <AvatarFallback className="gradient-primary text-primary-foreground">
+                  {displayName[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {status === 'online' && (
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(var(--online-status))] border-2 border-card" />
+              )}
+            </div>
+            <div>
+              <p className="font-semibold">{displayName}</p>
+              <p className="text-xs text-muted-foreground">{getStatusText()}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hover:bg-muted transition-smooth"
+              onClick={() => setActiveCall('voice')}
+            >
+              <Phone className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hover:bg-muted transition-smooth"
+              onClick={() => setActiveCall('video')}
+            >
+              <Video className="h-5 w-5" />
+            </Button>
+            <ThemeSelector 
+              conversationId={selectedConversation._id} 
+              onThemeChange={handleThemeChange} 
+            />
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth">
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth">
-            <Video className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
-    </div>
+
+      <UserProfileDialog 
+        user={other || null}
+        open={showProfile}
+        onOpenChange={setShowProfile}
+      />
+    </>
   );
 };
