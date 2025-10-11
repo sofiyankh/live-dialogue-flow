@@ -26,7 +26,7 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
         username: 'Demo User',
         email: email,
         status: 'online' as const,
-        lastSeen: new Date(),
+        lastSeen: new Date().toISOString(),
       };
       const mockToken = 'mock-jwt-token';
 

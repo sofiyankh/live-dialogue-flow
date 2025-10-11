@@ -10,8 +10,8 @@ class SocketService {
   private typingTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   connect(token: string) {
-    // Replace with your backend URL
-    const SOCKET_URL = process.env.VITE_SOCKET_URL || 'http://localhost:3000';
+    // Replace with your backend URL - for demo, we'll use a placeholder
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
     
     this.socket = io(SOCKET_URL, {
       auth: { token },

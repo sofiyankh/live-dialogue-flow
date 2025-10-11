@@ -4,7 +4,7 @@ export interface User {
   email: string;
   profilePic?: string;
   status: 'online' | 'away' | 'offline';
-  lastSeen: Date;
+  lastSeen: string; // ISO string for Redux serialization
 }
 
 export interface Message {
@@ -14,8 +14,8 @@ export interface Message {
   text: string;
   attachments?: Attachment[];
   status: 'sent' | 'delivered' | 'read';
-  createdAt: Date;
-  editedAt?: Date;
+  createdAt: string; // ISO string for Redux serialization
+  editedAt?: string;
   deleted: boolean;
 }
 
@@ -32,7 +32,7 @@ export interface Conversation {
   participants?: User[];
   type: 'direct' | 'group';
   lastMessage?: Message;
-  lastMessageAt: Date;
+  lastMessageAt: string; // ISO string for Redux serialization
   unreadCount: number;
 }
 
@@ -45,7 +45,7 @@ export interface Notification {
   messageId?: string;
   payload: any;
   read: boolean;
-  createdAt: Date;
+  createdAt: string; // ISO string for Redux serialization
 }
 
 export interface AuthState {

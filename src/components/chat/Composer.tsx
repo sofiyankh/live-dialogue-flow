@@ -25,7 +25,7 @@ export const Composer = () => {
       senderId: currentUserId,
       text: message.trim(),
       status: 'sent',
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       deleted: false,
     };
 
