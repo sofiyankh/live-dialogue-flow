@@ -67,9 +67,9 @@ export const MessageList = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col gradient-chat">
-      <div className="flex items-center justify-end p-2 border-b">
-        <Button variant="ghost" size="icon" onClick={() => setShowSearch(!showSearch)}>
+    <div className="flex-1 flex flex-col gradient-chat chat-messages-container relative">
+      <div className="flex items-center justify-end p-2 border-b backdrop-blur-sm bg-card/80 rounded-t-2xl">
+        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setShowSearch(!showSearch)}>
           <Search className="h-5 w-5" />
         </Button>
       </div>
@@ -84,7 +84,7 @@ export const MessageList = () => {
         />
       )}
       
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4 backdrop-blur-[2px]" ref={scrollRef}>
         <div className="space-y-4 max-w-4xl mx-auto">
           {filteredMessages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">

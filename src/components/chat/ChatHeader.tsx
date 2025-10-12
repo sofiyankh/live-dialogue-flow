@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,22 +7,75 @@ import { MoreVertical, Phone, Video } from 'lucide-react';
 import { UserProfileDialog } from './UserProfileDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeSelector, ChatTheme } from './ThemeSelector';
+import { WallpaperSelector } from './WallpaperSelector';
 import { CallInterface } from '../calling/CallInterface';
 
 export const ChatHeader = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [activeCall, setActiveCall] = useState<'voice' | 'video' | null>(null);
-
-  const handleThemeChange = (theme: ChatTheme) => {
-    // Apply theme to chat
-    document.documentElement.style.setProperty('--chat-sent', theme.sentBg);
-    document.documentElement.style.setProperty('--chat-sent-foreground', theme.sentText);
-    document.documentElement.style.setProperty('--chat-received', theme.receivedBg);
-    document.documentElement.style.setProperty('--chat-received-foreground', theme.receivedText);
-    document.documentElement.style.setProperty('--gradient-chat', theme.gradient);
-  };
   const { conversations, selectedConversationId } = useSelector((state: RootState) => state.conversations);
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id);
+
+  const handleThemeChange = (theme: ChatTheme) => {
+    if (!selectedConversationId) return;
+    
+    // Save theme to localStorage
+    localStorage.setItem(`theme-${selectedConversationId}`, JSON.stringify(theme));
+    
+    // Apply theme styles
+    const style = document.getElementById('chat-theme-style') || document.createElement('style');
+    style.id = 'chat-theme-style';
+    style.innerHTML = `
+      :root {
+        --chat-sent: ${theme.sentBg};
+        --chat-sent-foreground: ${theme.sentText};
+        --chat-received: ${theme.receivedBg};
+        --chat-received-foreground: ${theme.receivedText};
+      }
+      .gradient-chat {
+        background: ${theme.gradient} !important;
+      }
+    `;
+    if (!document.getElementById('chat-theme-style')) {
+      document.head.appendChild(style);
+    }
+  };
+
+  const handleWallpaperChange = (wallpaperUrl: string | null) => {
+    const chatContainer = document.querySelector('.chat-messages-container') as HTMLElement;
+    if (chatContainer) {
+      if (wallpaperUrl) {
+        if (wallpaperUrl.startsWith('data:image') || wallpaperUrl.startsWith('http')) {
+          chatContainer.style.backgroundImage = `url(${wallpaperUrl})`;
+          chatContainer.style.backgroundSize = 'cover';
+          chatContainer.style.backgroundPosition = 'center';
+          chatContainer.style.backgroundAttachment = 'fixed';
+        } else {
+          chatContainer.style.background = wallpaperUrl;
+        }
+      } else {
+        chatContainer.style.backgroundImage = '';
+        chatContainer.style.background = '';
+      }
+    }
+  };
+
+  // Load saved theme and wallpaper on mount
+  useEffect(() => {
+    if (selectedConversationId) {
+      const savedTheme = localStorage.getItem(`theme-${selectedConversationId}`);
+      if (savedTheme) {
+        handleThemeChange(JSON.parse(savedTheme));
+      }
+      
+      const savedWallpaper = localStorage.getItem(`wallpaper-${selectedConversationId}`);
+      if (savedWallpaper) {
+        handleWallpaperChange(savedWallpaper);
+      } else {
+        handleWallpaperChange(null);
+      }
+    }
+  }, [selectedConversationId]);
 
   const selectedConversation = conversations.find((c) => c._id === selectedConversationId);
 
@@ -88,7 +141,7 @@ export const ChatHeader = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-muted transition-smooth"
+              className="hover:bg-muted transition-smooth rounded-full"
               onClick={() => setActiveCall('voice')}
             >
               <Phone className="h-5 w-5" />
@@ -96,17 +149,21 @@ export const ChatHeader = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-muted transition-smooth"
+              className="hover:bg-muted transition-smooth rounded-full"
               onClick={() => setActiveCall('video')}
             >
               <Video className="h-5 w-5" />
             </Button>
+            <WallpaperSelector
+              conversationId={selectedConversation._id}
+              onWallpaperChange={handleWallpaperChange}
+            />
             <ThemeSelector 
               conversationId={selectedConversation._id} 
               onThemeChange={handleThemeChange} 
             />
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth">
+            <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth rounded-full">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>

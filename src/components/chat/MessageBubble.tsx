@@ -70,10 +70,10 @@ export const MessageBubble = ({ message, isOwn, sender, onReply, onEdit, onDelet
               ))}
               
               <div
-                className={`px-4 py-2 rounded-2xl shadow-bubble transition-smooth hover:scale-[1.02] ${
+                className={`px-4 py-2 rounded-3xl shadow-bubble transition-smooth hover:scale-[1.02] backdrop-blur-sm ${
                   isOwn
-                    ? 'bg-[hsl(var(--chat-sent))] text-[hsl(var(--chat-sent-foreground))] rounded-br-sm'
-                    : 'bg-[hsl(var(--chat-received))] text-[hsl(var(--chat-received-foreground))] rounded-bl-sm'
+                    ? 'bg-[hsl(var(--chat-sent))] text-[hsl(var(--chat-sent-foreground))] rounded-br-md'
+                    : 'bg-[hsl(var(--chat-received))]/95 text-[hsl(var(--chat-received-foreground))] rounded-bl-md'
                 }`}
               >
                 {message.editedAt && (

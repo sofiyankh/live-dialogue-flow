@@ -61,12 +61,12 @@ export const Composer = () => {
   if (!selectedConversationId) return null;
 
   return (
-    <div className="border-t p-4 bg-card">
+    <div className="border-t p-4 bg-card/80 backdrop-blur-sm rounded-b-2xl">
       <div className="max-w-4xl mx-auto flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-foreground transition-smooth"
+          className="text-muted-foreground hover:text-foreground transition-smooth rounded-full"
         >
           <Paperclip className="h-5 w-5" />
         </Button>
@@ -77,12 +77,12 @@ export const Composer = () => {
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="pr-10 transition-smooth focus-visible:ring-primary"
+            className="pr-10 transition-smooth focus-visible:ring-primary rounded-full"
           />
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground rounded-full"
           >
             <Smile className="h-5 w-5" />
           </Button>
@@ -91,7 +91,7 @@ export const Composer = () => {
         <Button
           onClick={handleSendMessage}
           disabled={!message.trim()}
-          className="gradient-primary text-primary-foreground transition-bounce hover:scale-105"
+          className="gradient-primary text-primary-foreground transition-bounce hover:scale-105 rounded-full"
           size="icon"
         >
           <Send className="h-5 w-5" />

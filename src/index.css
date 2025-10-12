@@ -37,7 +37,7 @@ All colors MUST be HSL.
     --input: 220 13% 91%;
     --ring: 262 83% 58%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Chat-specific tokens */
     --chat-bg: 220 20% 98%;

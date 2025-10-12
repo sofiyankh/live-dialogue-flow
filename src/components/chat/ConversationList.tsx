@@ -66,7 +66,7 @@ export const ConversationList = () => {
                 <button
                   key={conversation._id}
                   onClick={() => handleSelectConversation(conversation._id)}
-                  className={`w-full p-4 flex items-start gap-3 hover:bg-muted/50 transition-smooth ${
+                  className={`w-full p-4 flex items-start gap-3 hover:bg-muted/50 transition-smooth rounded-2xl mx-2 my-1 ${
                     isSelected ? 'bg-muted' : ''
                   }`}
                 >
