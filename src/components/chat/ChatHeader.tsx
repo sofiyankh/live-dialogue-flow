@@ -22,17 +22,22 @@ export const ChatHeader = () => {
     // Save theme to localStorage
     localStorage.setItem(`theme-${selectedConversationId}`, JSON.stringify(theme));
     
-    // Apply theme styles
+    // Apply theme styles - extract HSL values from hsl() format
+    const extractHSL = (hslString: string) => {
+      const match = hslString.match(/hsl\((.*?)\)/);
+      return match ? match[1] : hslString;
+    };
+    
     const style = document.getElementById('chat-theme-style') || document.createElement('style');
     style.id = 'chat-theme-style';
     style.innerHTML = `
       :root {
-        --chat-sent: ${theme.sentBg};
-        --chat-sent-foreground: ${theme.sentText};
-        --chat-received: ${theme.receivedBg};
-        --chat-received-foreground: ${theme.receivedText};
+        --chat-sent: ${extractHSL(theme.sentBg)};
+        --chat-sent-foreground: ${extractHSL(theme.sentText)};
+        --chat-received: ${extractHSL(theme.receivedBg)};
+        --chat-received-foreground: ${extractHSL(theme.receivedText)};
       }
-      .gradient-chat {
+      .gradient-chat:not(.chat-messages-container[style*="background"]) {
         background: ${theme.gradient} !important;
       }
     `;
@@ -45,15 +50,21 @@ export const ChatHeader = () => {
     const chatContainer = document.querySelector('.chat-messages-container') as HTMLElement;
     if (chatContainer) {
       if (wallpaperUrl) {
+        // Remove gradient-chat class when wallpaper is applied
+        chatContainer.classList.remove('gradient-chat');
         if (wallpaperUrl.startsWith('data:image') || wallpaperUrl.startsWith('http')) {
           chatContainer.style.backgroundImage = `url(${wallpaperUrl})`;
           chatContainer.style.backgroundSize = 'cover';
           chatContainer.style.backgroundPosition = 'center';
           chatContainer.style.backgroundAttachment = 'fixed';
+          chatContainer.style.backgroundRepeat = 'no-repeat';
         } else {
+          chatContainer.style.backgroundImage = '';
           chatContainer.style.background = wallpaperUrl;
         }
       } else {
+        // Add gradient-chat class back when wallpaper is removed
+        chatContainer.classList.add('gradient-chat');
         chatContainer.style.backgroundImage = '';
         chatContainer.style.background = '';
       }
