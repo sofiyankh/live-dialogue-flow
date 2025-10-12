@@ -13,12 +13,16 @@ export const MessageList = () => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const { selectedConversationId } = useSelector((state: RootState) => state.conversations);
+  const { selectedConversationId, conversations } = useSelector((state: RootState) => state.conversations);
   const messages = useSelector((state: RootState) =>
     selectedConversationId ? state.messages.messagesByConversation[selectedConversationId] || [] : []
   );
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Get current conversation and participants at the top level
+  const selectedConversation = conversations.find(c => c._id === selectedConversationId);
+  const participants = selectedConversation?.participants || [];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -94,13 +98,8 @@ export const MessageList = () => {
                 new Date(message.createdAt).toDateString() !==
                   new Date(filteredMessages[index - 1].createdAt).toDateString();
 
-              // Get sender info from conversation participants
-              const sender = useSelector((state: RootState) => {
-                const conversation = state.conversations.conversations.find(
-                  c => c._id === selectedConversationId
-                );
-                return conversation?.participants?.find(p => p._id === message.senderId);
-              });
+              // Get sender info from participants (already fetched at top level)
+              const sender = participants.find(p => p._id === message.senderId);
 
               return (
                 <div key={message._id}>
