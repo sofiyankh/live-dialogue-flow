@@ -9,17 +9,12 @@ import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageList } from '@/components/chat/MessageList';
 import { Composer } from '@/components/chat/Composer';
 import { ChatHeader } from '@/components/chat/ChatHeader';
-import { BottomNavbar } from '@/components/chat/BottomNavbar';
 import { Conversation, Message, User } from '@/types';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [mobileView, setMobileView] = useState<'conversations' | 'chat'>('conversations');
   const { isAuthenticated, token, user } = useSelector((state: RootState) => state.auth);
-  const { selectedConversationId } = useSelector((state: RootState) => state.conversations);
   const dispatch = useDispatch();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -201,53 +196,19 @@ const Index = () => {
     );
   }
 
-  // Auto-switch to chat view on mobile when conversation is selected
-  useEffect(() => {
-    if (isMobile && selectedConversationId && mobileView === 'conversations') {
-      setMobileView('chat');
-    }
-  }, [selectedConversationId, isMobile, mobileView]);
-
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
-      {/* Desktop: Always show sidebar */}
-      {/* Mobile: Show based on mobileView */}
-      <div 
-        className={`w-full md:w-80 lg:w-96 flex-shrink-0 ${
-          isMobile ? (mobileView === 'conversations' ? 'block' : 'hidden') : 'block'
-        }`}
-      >
+      {/* Conversations sidebar - permanent on mobile */}
+      <div className="w-full md:w-80 lg:w-96 flex-shrink-0">
         <ConversationList />
       </div>
 
       {/* Chat area */}
-      <div 
-        className={`flex-1 flex flex-col min-w-0 ${
-          isMobile ? (mobileView === 'chat' ? 'block pb-16' : 'hidden') : 'block'
-        }`}
-      >
-        {selectedConversationId && (
-          <>
-            <ChatHeader />
-            <MessageList />
-            <Composer />
-          </>
-        )}
-        {!selectedConversationId && !isMobile && (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Select a conversation to start messaging
-          </div>
-        )}
+      <div className="flex-1 flex flex-col min-w-0">
+        <ChatHeader />
+        <MessageList />
+        <Composer />
       </div>
-
-      {/* Bottom navbar - only on mobile */}
-      {isMobile && (
-        <BottomNavbar
-          activeView={mobileView}
-          onViewChange={setMobileView}
-          hasActiveChat={!!selectedConversationId}
-        />
-      )}
     </div>
   );
 };
