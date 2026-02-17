@@ -29,91 +29,69 @@ export const ConversationList = () => {
     return other?.username || 'Unknown';
   };
 
-  const getDisplayPic = (conversation: any) => {
-    const other = getOtherParticipant(conversation);
-    return other?.profilePic;
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online':
-        return 'bg-[hsl(var(--online-status))]';
-      case 'away':
-        return 'bg-[hsl(var(--away-status))]';
-      default:
-        return 'bg-[hsl(var(--offline-status))]';
+      case 'online': return 'bg-[hsl(var(--online-status))]';
+      case 'away': return 'bg-[hsl(var(--away-status))]';
+      default: return 'bg-[hsl(var(--offline-status))]';
     }
   };
 
   return (
-    <div className="h-full flex flex-col border-r">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold">Messages</h2>
-      </div>
-      
-      <ScrollArea className="flex-1">
-        {conversations.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            No conversations yet
-          </div>
-        ) : (
-          <div className="divide-y">
-            {conversations.map((conversation) => {
-              const other = getOtherParticipant(conversation);
-              const isSelected = conversation._id === selectedConversationId;
-              
-              return (
-                <button
-                  key={conversation._id}
-                  onClick={() => handleSelectConversation(conversation._id)}
-                  className={`w-full p-4 flex items-start gap-3 hover:bg-muted/50 transition-smooth rounded-2xl mx-2 my-1 ${
-                    isSelected ? 'bg-muted' : ''
-                  }`}
-                >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={getDisplayPic(conversation)} />
-                      <AvatarFallback className="gradient-primary text-primary-foreground">
-                        {getDisplayName(conversation)[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {conversation.type === 'direct' && other && (
-                      <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-card ${getStatusColor(
-                          other.status
-                        )}`}
-                      />
+    <ScrollArea className="flex-1">
+      {conversations.length === 0 ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">No conversations yet</div>
+      ) : (
+        <div className="p-2 space-y-1">
+          {conversations.map((conversation) => {
+            const other = getOtherParticipant(conversation);
+            const isSelected = conversation._id === selectedConversationId;
+
+            return (
+              <button
+                key={conversation._id}
+                onClick={() => handleSelectConversation(conversation._id)}
+                className={`w-full p-3 flex items-center gap-3 rounded-lg transition-colors text-left ${
+                  isSelected ? 'bg-muted' : 'hover:bg-muted/50'
+                }`}
+              >
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={other?.profilePic} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                      {getDisplayName(conversation).slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {other && (
+                    <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${getStatusColor(other.status)}`} />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="font-medium text-sm truncate">{getDisplayName(conversation)}</p>
+                    {conversation.lastMessage && (
+                      <span className="text-[10px] text-muted-foreground ml-2 shrink-0">
+                        {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), { addSuffix: false })}
+                      </span>
                     )}
                   </div>
-
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium truncate">{getDisplayName(conversation)}</p>
-                      {conversation.lastMessage && (
-                        <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                          {formatDistanceToNow(new Date(conversation.lastMessage.createdAt), {
-                            addSuffix: false,
-                          })}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage?.text || 'No messages yet'}
-                      </p>
-                      {conversation.unreadCount > 0 && (
-                        <Badge className="ml-2 flex-shrink-0 gradient-primary text-primary-foreground">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground truncate">
+                      {conversation.lastMessage?.text || 'No messages yet'}
+                    </p>
+                    {conversation.unreadCount > 0 && (
+                      <Badge className="ml-2 shrink-0 h-5 min-w-5 flex items-center justify-center text-[10px] rounded-full">
+                        {conversation.unreadCount}
+                      </Badge>
+                    )}
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </ScrollArea>
-    </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </ScrollArea>
   );
 };

@@ -2,7 +2,7 @@ import { useState, KeyboardEvent } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
 import { addMessage } from '@/store/messagesSlice';
-import { socketService } from '@/services/socket';
+import { chatEventBus } from '@/services/chatEventBus';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Paperclip, Smile } from 'lucide-react';
@@ -10,7 +10,6 @@ import { Message } from '@/types';
 
 export const Composer = () => {
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const dispatch = useDispatch();
   const { selectedConversationId } = useSelector((state: RootState) => state.conversations);
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id);
@@ -18,9 +17,8 @@ export const Composer = () => {
   const handleSendMessage = () => {
     if (!message.trim() || !selectedConversationId || !currentUserId) return;
 
-    const tempId = `temp-${Date.now()}`;
     const newMessage: Message = {
-      _id: tempId,
+      _id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       conversationId: selectedConversationId,
       senderId: currentUserId,
       text: message.trim(),
@@ -29,14 +27,13 @@ export const Composer = () => {
       deleted: false,
     };
 
-    // Optimistic UI update
+    // Add to own store
     dispatch(addMessage(newMessage));
 
-    // Send to server via socket
-    socketService.sendMessage(selectedConversationId, message.trim(), tempId);
+    // Broadcast to other sessions via event bus
+    chatEventBus.emit('new-message', newMessage);
 
     setMessage('');
-    setIsTyping(false);
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -46,55 +43,39 @@ export const Composer = () => {
     }
   };
 
-  const handleInputChange = (value: string) => {
-    setMessage(value);
-    
-    if (!isTyping && value.length > 0 && selectedConversationId) {
-      setIsTyping(true);
-      socketService.sendTyping(selectedConversationId, true);
-    } else if (isTyping && value.length === 0 && selectedConversationId) {
-      setIsTyping(false);
-      socketService.sendTyping(selectedConversationId, false);
-    }
-  };
-
   if (!selectedConversationId) return null;
 
   return (
-    <div className="border-t p-4 bg-card/80 backdrop-blur-sm rounded-b-2xl">
+    <div className="border-t p-3 bg-card">
       <div className="max-w-4xl mx-auto flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground transition-smooth rounded-full"
-        >
-          <Paperclip className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="text-muted-foreground h-9 w-9 rounded-full shrink-0">
+          <Paperclip className="h-4 w-4" />
         </Button>
         
         <div className="flex-1 relative">
           <Input
             value={message}
-            onChange={(e) => handleInputChange(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
             placeholder="Type a message..."
-            className="pr-10 transition-smooth focus-visible:ring-primary rounded-full"
+            className="pr-10 rounded-full h-9"
           />
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground rounded-full"
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 text-muted-foreground h-8 w-8 rounded-full"
           >
-            <Smile className="h-5 w-5" />
+            <Smile className="h-4 w-4" />
           </Button>
         </div>
 
         <Button
           onClick={handleSendMessage}
           disabled={!message.trim()}
-          className="gradient-primary text-primary-foreground transition-bounce hover:scale-105 rounded-full"
           size="icon"
+          className="rounded-full h-9 w-9 shrink-0"
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

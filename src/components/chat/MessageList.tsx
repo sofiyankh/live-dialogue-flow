@@ -20,7 +20,6 @@ export const MessageList = () => {
   const currentUserId = useSelector((state: RootState) => state.auth.user?._id);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Get current conversation and participants at the top level
   const selectedConversation = conversations.find(c => c._id === selectedConversationId);
   const participants = selectedConversation?.participants || [];
 
@@ -34,22 +33,13 @@ export const MessageList = () => {
     ? messages.filter(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()))
     : messages;
 
-  const handleReply = (message: Message) => {
-    // Will be handled by Composer in next update
-    console.log('Reply to:', message);
-  };
-
+  const handleReply = (message: Message) => console.log('Reply to:', message);
   const handleEdit = (message: Message) => {
     const newText = prompt('Edit message:', message.text);
     if (newText && newText !== message.text) {
-      dispatch(updateMessage({
-        ...message,
-        text: newText,
-        editedAt: new Date().toISOString(),
-      }));
+      dispatch(updateMessage({ ...message, text: newText, editedAt: new Date().toISOString() }));
     }
   };
-
   const handleDelete = (messageId: string) => {
     if (confirm('Delete this message?') && selectedConversationId) {
       dispatch(deleteMessage({ conversationId: selectedConversationId, messageId }));
@@ -58,36 +48,25 @@ export const MessageList = () => {
 
   if (!selectedConversationId) {
     return (
-      <div className="flex-1 flex items-center justify-center gradient-chat">
-        <div className="text-center text-muted-foreground">
-          <p className="text-lg mb-2">Select a conversation to start messaging</p>
-        </div>
+      <div className="flex-1 flex items-center justify-center bg-muted/20">
+        <p className="text-sm text-muted-foreground">Select a conversation to start messaging</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col gradient-chat chat-messages-container relative">
-      <div className="flex items-center justify-end p-2 border-b backdrop-blur-sm bg-card/80 rounded-t-2xl">
-        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setShowSearch(!showSearch)}>
-          <Search className="h-5 w-5" />
-        </Button>
-      </div>
-      
+    <div className="flex-1 flex flex-col bg-background chat-messages-container relative overflow-hidden">
       {showSearch && (
-        <MessageSearch 
-          onSearch={setSearchQuery} 
-          onClose={() => {
-            setShowSearch(false);
-            setSearchQuery('');
-          }} 
+        <MessageSearch
+          onSearch={setSearchQuery}
+          onClose={() => { setShowSearch(false); setSearchQuery(''); }}
         />
       )}
-      
-      <ScrollArea className="flex-1 p-4 backdrop-blur-[2px]" ref={scrollRef}>
-        <div className="space-y-4 max-w-4xl mx-auto">
+
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <div className="space-y-1 max-w-4xl mx-auto">
           {filteredMessages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-muted-foreground py-8 text-sm">
               {searchQuery ? 'No messages found' : 'No messages yet. Start the conversation!'}
             </div>
           ) : (
@@ -97,23 +76,21 @@ export const MessageList = () => {
                 index === 0 ||
                 new Date(message.createdAt).toDateString() !==
                   new Date(filteredMessages[index - 1].createdAt).toDateString();
-
-              // Get sender info from participants (already fetched at top level)
               const sender = participants.find(p => p._id === message.senderId);
 
               return (
                 <div key={message._id}>
                   {showDateSeparator && (
-                    <div className="flex items-center justify-center my-4">
-                      <span className="text-xs text-muted-foreground bg-card px-3 py-1 rounded-full shadow-sm">
+                    <div className="flex items-center justify-center my-3">
+                      <span className="text-[10px] text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full">
                         {new Date(message.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   )}
-                  <MessageBubble 
-                    message={message} 
-                    isOwn={isOwn} 
-                    sender={sender} 
+                  <MessageBubble
+                    message={message}
+                    isOwn={isOwn}
+                    sender={sender}
                     onReply={handleReply}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
@@ -124,6 +101,12 @@ export const MessageList = () => {
           )}
         </div>
       </ScrollArea>
+
+      <div className="absolute top-2 right-2">
+        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full bg-background/80" onClick={() => setShowSearch(!showSearch)}>
+          <Search className="h-3.5 w-3.5" />
+        </Button>
+      </div>
     </div>
   );
 };
