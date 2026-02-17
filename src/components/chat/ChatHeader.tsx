@@ -18,16 +18,11 @@ export const ChatHeader = () => {
 
   const handleThemeChange = (theme: ChatTheme) => {
     if (!selectedConversationId) return;
-    
-    // Save theme to localStorage
     localStorage.setItem(`theme-${selectedConversationId}`, JSON.stringify(theme));
-    
-    // Apply theme styles - extract HSL values from hsl() format
     const extractHSL = (hslString: string) => {
       const match = hslString.match(/hsl\((.*?)\)/);
       return match ? match[1] : hslString;
     };
-    
     const style = document.getElementById('chat-theme-style') || document.createElement('style');
     style.id = 'chat-theme-style';
     style.innerHTML = `
@@ -36,9 +31,6 @@ export const ChatHeader = () => {
         --chat-sent-foreground: ${extractHSL(theme.sentText)};
         --chat-received: ${extractHSL(theme.receivedBg)};
         --chat-received-foreground: ${extractHSL(theme.receivedText)};
-      }
-      .gradient-chat:not(.chat-messages-container[style*="background"]) {
-        background: ${theme.gradient} !important;
       }
     `;
     if (!document.getElementById('chat-theme-style')) {
@@ -50,46 +42,32 @@ export const ChatHeader = () => {
     const chatContainer = document.querySelector('.chat-messages-container') as HTMLElement;
     if (chatContainer) {
       if (wallpaperUrl) {
-        // Remove gradient-chat class when wallpaper is applied
-        chatContainer.classList.remove('gradient-chat');
         if (wallpaperUrl.startsWith('data:image') || wallpaperUrl.startsWith('http')) {
           chatContainer.style.backgroundImage = `url(${wallpaperUrl})`;
           chatContainer.style.backgroundSize = 'cover';
           chatContainer.style.backgroundPosition = 'center';
-          chatContainer.style.backgroundAttachment = 'fixed';
           chatContainer.style.backgroundRepeat = 'no-repeat';
         } else {
           chatContainer.style.backgroundImage = '';
           chatContainer.style.background = wallpaperUrl;
         }
       } else {
-        // Add gradient-chat class back when wallpaper is removed
-        chatContainer.classList.add('gradient-chat');
         chatContainer.style.backgroundImage = '';
         chatContainer.style.background = '';
       }
     }
   };
 
-  // Load saved theme and wallpaper on mount
   useEffect(() => {
     if (selectedConversationId) {
       const savedTheme = localStorage.getItem(`theme-${selectedConversationId}`);
-      if (savedTheme) {
-        handleThemeChange(JSON.parse(savedTheme));
-      }
-      
+      if (savedTheme) handleThemeChange(JSON.parse(savedTheme));
       const savedWallpaper = localStorage.getItem(`wallpaper-${selectedConversationId}`);
-      if (savedWallpaper) {
-        handleWallpaperChange(savedWallpaper);
-      } else {
-        handleWallpaperChange(null);
-      }
+      handleWallpaperChange(savedWallpaper || null);
     }
   }, [selectedConversationId]);
 
   const selectedConversation = conversations.find((c) => c._id === selectedConversationId);
-
   if (!selectedConversation) return null;
 
   const getOtherParticipant = () => {
@@ -101,18 +79,7 @@ export const ChatHeader = () => {
 
   const other = getOtherParticipant();
   const displayName = selectedConversation.title || other?.username || 'Unknown';
-  const displayPic = other?.profilePic;
   const status = other?.status;
-
-  const getStatusText = () => {
-    if (!other) return '';
-    if (status === 'online') return 'Online';
-    if (status === 'away') return 'Away';
-    if (other.lastSeen) {
-      return `Last seen ${new Date(other.lastSeen).toLocaleString()}`;
-    }
-    return 'Offline';
-  };
 
   return (
     <>
@@ -120,72 +87,49 @@ export const ChatHeader = () => {
         <CallInterface
           type={activeCall}
           recipientName={displayName}
-          recipientImage={displayPic}
+          recipientImage={other?.profilePic}
           onEndCall={() => setActiveCall(null)}
         />
       )}
-
-      <div className="border-b p-4 bg-card">
+      <div className="border-b px-4 py-2.5 bg-card">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-smooth"
+          <div
+            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-colors"
             onClick={() => setShowProfile(true)}
           >
             <div className="relative">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={displayPic} />
-                <AvatarFallback className="gradient-primary text-primary-foreground">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={other?.profilePic} />
+                <AvatarFallback className="bg-primary/10 text-primary text-sm">
                   {displayName[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {status === 'online' && (
-                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(var(--online-status))] border-2 border-card" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[hsl(var(--online-status))] border-2 border-card" />
               )}
             </div>
             <div>
-              <p className="font-semibold">{displayName}</p>
-              <p className="text-xs text-muted-foreground">{getStatusText()}</p>
+              <p className="font-medium text-sm">{displayName}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {status === 'online' ? 'Online' : status === 'away' ? 'Away' : 'Offline'}
+              </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hover:bg-muted transition-smooth rounded-full"
-              onClick={() => setActiveCall('voice')}
-            >
-              <Phone className="h-5 w-5" />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActiveCall('voice')}>
+              <Phone className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hover:bg-muted transition-smooth rounded-full"
-              onClick={() => setActiveCall('video')}
-            >
-              <Video className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActiveCall('video')}>
+              <Video className="h-4 w-4" />
             </Button>
-            <WallpaperSelector
-              conversationId={selectedConversation._id}
-              onWallpaperChange={handleWallpaperChange}
-            />
-            <ThemeSelector 
-              conversationId={selectedConversation._id} 
-              onThemeChange={handleThemeChange} 
-            />
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="hover:bg-muted transition-smooth rounded-full">
-              <MoreVertical className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
-
-      <UserProfileDialog 
-        user={other || null}
-        open={showProfile}
-        onOpenChange={setShowProfile}
-      />
+      <UserProfileDialog user={other || null} open={showProfile} onOpenChange={setShowProfile} />
     </>
   );
 };

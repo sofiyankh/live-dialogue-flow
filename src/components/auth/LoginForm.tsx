@@ -1,109 +1,69 @@
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { loginStart, loginSuccess } from '@/store/authSlice';
+import { loginSuccess } from '@/store/authSlice';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DEMO_USER_1, DEMO_USER_2 } from '@/services/chatEventBus';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { MessageCircle } from 'lucide-react';
 
 interface LoginFormProps {
   onToggleMode: () => void;
 }
 
 export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(loginStart());
-
-    // Mock login - replace with actual API call
-    setTimeout(() => {
-      const mockUser = {
-        _id: '1',
-        username: 'Demo User',
-        email: email,
-        status: 'online' as const,
-        lastSeen: new Date().toISOString(),
-      };
-      const mockToken = 'mock-jwt-token';
-
-      dispatch(loginSuccess({ user: mockUser, token: mockToken }));
-    }, 500);
+  const loginAs = (user: typeof DEMO_USER_1) => {
+    dispatch(loginSuccess({ user, token: `token-${user._id}` }));
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to continue to LiveChat</CardDescription>
+    <Card className="w-full max-w-sm border shadow-lg">
+      <CardHeader className="text-center pb-2">
+        <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
+          <MessageCircle className="h-6 w-6 text-primary-foreground" />
+        </div>
+        <CardTitle className="text-xl">LiveChat Demo</CardTitle>
+        <CardDescription className="text-sm">
+          Pick a user to start chatting. Open two tabs to see real-time sync!
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+      <CardContent className="space-y-3 pt-2">
+        <Button
+          variant="outline"
+          className="w-full h-auto py-3 justify-start gap-3"
+          onClick={() => loginAs(DEMO_USER_1)}
+        >
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+              AM
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-left">
+            <p className="font-medium text-sm">{DEMO_USER_1.username}</p>
+            <p className="text-xs text-muted-foreground">{DEMO_USER_1.email}</p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full gradient-primary text-primary-foreground">
-            Sign In
-          </Button>
-          
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
+        </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              setEmail('demo@livechat.com');
-              setPassword('demo123');
-              setTimeout(() => {
-                const event = new Event('submit', { bubbles: true, cancelable: true });
-                document.querySelector('form')?.dispatchEvent(event);
-              }, 100);
-            }}
-          >
-            Try Demo Account
-          </Button>
-
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <button
-              type="button"
-              onClick={onToggleMode}
-              className="text-primary hover:underline font-medium"
-            >
-              Sign up
-            </button>
+        <Button
+          variant="outline"
+          className="w-full h-auto py-3 justify-start gap-3"
+          onClick={() => loginAs(DEMO_USER_2)}
+        >
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-accent text-accent-foreground text-sm font-semibold">
+              JL
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-left">
+            <p className="font-medium text-sm">{DEMO_USER_2.username}</p>
+            <p className="text-xs text-muted-foreground">{DEMO_USER_2.email}</p>
           </div>
-        </form>
+        </Button>
+
+        <p className="text-xs text-center text-muted-foreground pt-1">
+          Messages sync in real-time across sessions
+        </p>
       </CardContent>
     </Card>
   );
